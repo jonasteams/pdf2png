@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- SEO -->
+  <title>PDF to PNG & PNG to PDF Converter | Free Online Tool</title>
+  <meta name="description" content="Free online PDF to PNG and PNG to PDF converter. Fast, secure, and easy to use. Convert your files instantly without installation.">
+  <meta name="keywords" content="PDF to PNG, PNG to PDF, convert PDF, convert PNG, free PDF tool, online converter">
+  <meta name="author" content="PDF PNG Tool">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="PDF to PNG & PNG to PDF Converter">
+  <meta property="og:description" content="Convert your PDF to PNG or PNG to PDF online for free. Quick, secure, and no installation needed.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="http://localhost:5000/">
+  <meta property="og:image" content="{{ url_for('static', filename='preview.png') }}">
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PDF to PNG & PNG to PDF Converter">
+  <meta name="twitter:description" content="Free online converter for PDF and PNG files.">
+  <meta name="twitter:image" content="{{ url_for('static', filename='preview.png') }}">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- NAVBAR fixe en haut -->
+  <nav class="fixed top-0 left-0 w-full bg-blue-600 h-[80px] shadow z-50">
+    <div class="container mx-auto h-full flex items-center justify-between px-6">
+      <!-- logo à gauche -->
+      <div class="flex items-start pt-2">
+        <img src="/static/logo.png" alt="PDF PNG Converter Logo" class="w-[160px] h-auto object-contain">
+      </div>
+
+      <!-- menu centré -->
+      <div class="flex-1 flex justify-center">
+        <div class="flex space-x-12 text-white text-lg font-semibold items-center">
+          <a href="/?tab=pdf2png"
+             class="{{ 'text-white' if tab=='pdf2png' else 'text-white/90 hover:text-white' }}">
+             PDF to PNG
+          </a>
+          <a href="/?tab=png2pdf"
+             class="{{ 'text-white' if tab=='png2pdf' else 'text-white/90 hover:text-white' }}">
+             PNG to PDF
+          </a>
+        </div>
+      </div>
+
+      <!-- placeholder -->
+      <div class="w-[160px]"></div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="flex-1 pt-[120px] flex justify-center">
+    <div class="w-full max-w-lg px-4">
+      <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6">
+          {% if tab == 'pdf2png' %}Convert PDF to PNG{% else %}Convert PNG(s) to PDF{% endif %}
+        </h1>
+
+        {% if message %}
+          <div class="mb-4 text-sm text-red-600">{{ message }}</div>
+        {% endif %}
+
+        {% if tab == 'pdf2png' %}
+          <form action="/convert" method="post" enctype="multipart/form-data" class="space-y-4">
+            <input type="hidden" name="tab" value="pdf2png">
+
+            <!-- Browse button + filename display -->
+            <div class="flex items-center space-x-2">
+              <label class="flex-1 block p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-pointer text-center">
+                Browse
+                <input type="file" name="file" accept=".pdf" required class="hidden"
+                       onchange="document.getElementById('file-name').textContent = this.files[0].name">
+              </label>
+              <span id="file-name" class="text-gray-700 truncate">No file chosen</span>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+              Convert
+            </button>
+          </form>
+        {% else %}
+          <form action="/convert" method="post" enctype="multipart/form-data" class="space-y-4">
+            <input type="hidden" name="tab" value="png2pdf">
+
+            <!-- Browse button + multiple filenames display -->
+            <div class="flex flex-col space-y-2">
+              <label class="block p-2 border border-gray-300 rounded-lg bg-gray-50 text-gray-700 cursor-pointer text-center">
+                Browse
+                <input type="file" name="files" accept=".png,.jpg,.jpeg" multiple required class="hidden"
+                       onchange="updateFileList(this)">
+              </label>
+              <div id="file-name" class="text-gray-700 truncate">No file chosen</div>
+            </div>
+
+            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 transition">
+              Convert
+            </button>
+          </form>
+        {% endif %}
+
+        {% if download_link %}
+          <div class="mt-6">
+            <a href="{{ download_link }}" class="inline-block bg-green-500 text-white font-semibold py-2 px-6 rounded-lg hover:bg-green-600">
+              Download ZIP
+            </a>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </main>
+
+ <!-- FOOTER -->
+<footer class="text-center text-gray-500 text-sm py-6">
+  <p>All uploaded data is deleted after 1 hour.</p>
+  <p>© png2pdftool.com | <a href="/terms" class="text-blue-600 underline hover:text-blue-800">Terms and Privacy</a></p>
+</footer>
+
+
+  <script>
+    function updateFileList(input) {
+      const fileList = Array.from(input.files).map(f => f.name).join(', ');
+      document.getElementById('file-name').textContent = fileList || 'No file chosen';
+    }
+  </script>
+
+</body>
+</html>
