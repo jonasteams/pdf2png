@@ -1,3 +1,4 @@
+from flask_cors import CORS
 from flask import Flask, render_template, request, send_file, Response, redirect, url_for
 from werkzeug.utils import secure_filename
 import os
@@ -7,7 +8,9 @@ from io import BytesIO
 from pdf2image import convert_from_path
 from PIL import Image
 
+
 app = Flask(__name__)
+CORS(app)
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['OUTPUT_FOLDER'] = 'output'
 
