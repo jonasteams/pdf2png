@@ -1,5 +1,5 @@
 from flask_cors import CORS
-from flask import Flask, render_template, request, send_file, Response, redirect, url_for
+from flask import Flask, request, send_file, Response, render_template
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
@@ -8,9 +8,9 @@ from io import BytesIO
 from pdf2image import convert_from_path
 from PIL import Image
 
-
 app = Flask(__name__)
 CORS(app)
+
 app.config['UPLOAD_FOLDER'] = 'uploads'
 app.config['OUTPUT_FOLDER'] = 'output'
 
@@ -20,29 +20,24 @@ os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
 # Home route
 @app.route('/')
 def home():
-    tab = request.args.get('tab')
-    # Default to PNG→PDF
-    if not tab:
-        return redirect(url_for('home', tab='png2pdf'))
-    return render_template('index.html', tab=tab)
+    return render_template('index.html')
 
-# Conversion route
+# Conversion route compatible frontend
 @app.route('/convert', methods=['POST'])
 def convert():
-    tab = request.form.get('tab')
-    message = None
+    files = request.files.getlist('file')  # frontend sends key="file"
+    if not files:
+        return "No file provided", 400
 
-    if tab == 'pdf2png':
-        file = request.files.get('file')
-        if not file:
-            message = "Please upload a PDF file."
-            return render_template('index.html', tab=tab, message=message)
+    first_file = files[0]
+    filename = secure_filename(first_file.filename)
+    ext = os.path.splitext(filename)[1].lower()
 
-        filename = secure_filename(file.filename)
+    if ext == '.pdf':  # PDF → PNG
         pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(pdf_path)
-
+        first_file.save(pdf_path)
         images = convert_from_path(pdf_path)
+
         zip_buffer = BytesIO()
         temp_files = []
 
@@ -56,19 +51,14 @@ def convert():
 
         zip_buffer.seek(0)
 
-        # Delete temporary files
+        # Delete temp files
         os.remove(pdf_path)
         for f in temp_files:
             os.remove(f)
 
         return send_file(zip_buffer, as_attachment=True, download_name=f"{os.path.splitext(filename)[0]}.zip", mimetype='application/zip')
 
-    elif tab == 'png2pdf':
-        files = request.files.getlist('files')
-        if not files:
-            message = "Please upload at least one PNG/JPG file."
-            return render_template('index.html', tab=tab, message=message)
-
+    elif ext in ['.png', '.jpg', '.jpeg']:  # PNG → PDF
         images = []
         temp_files = []
 
@@ -84,41 +74,31 @@ def convert():
         pdf_path = os.path.join(app.config['OUTPUT_FOLDER'], pdf_filename)
         images[0].save(pdf_path, save_all=True, append_images=images[1:])
 
-        # Delete temporary files
+        # Delete temp files
         for f in temp_files:
             os.remove(f)
 
         return send_file(pdf_path, as_attachment=True, download_name=pdf_filename, mimetype='application/pdf')
 
     else:
-        message = "Unknown conversion type."
-        return render_template('index.html', tab='png2pdf', message=message)
+        return "Unsupported file type", 400
 
-# Terms & Privacy route
+# Terms & Privacy
 @app.route('/terms')
 def terms():
     return render_template('terms.html')
 
-# Sitemap XML
-@app.route('/sitemap.xml', methods=['GET'])
+# Sitemap
+@app.route('/sitemap.xml')
 def sitemap():
     pages = [
         {'loc': request.url_root, 'lastmod': datetime.now().date(), 'priority': '1.0'},
-        {'loc': request.url_root + '?tab=pdf2png', 'lastmod': datetime.now().date(), 'priority': '0.9'},
-        {'loc': request.url_root + '?tab=png2pdf', 'lastmod': datetime.now().date(), 'priority': '0.9'},
         {'loc': request.url_root + 'terms', 'lastmod': datetime.now().date(), 'priority': '0.8'},
     ]
-
-    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n'
-    sitemap_xml += '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
     for page in pages:
-        sitemap_xml += '  <url>\n'
-        sitemap_xml += f'    <loc>{page["loc"]}</loc>\n'
-        sitemap_xml += f'    <lastmod>{page["lastmod"]}</lastmod>\n'
-        sitemap_xml += f'    <priority>{page["priority"]}</priority>\n'
-        sitemap_xml += '  </url>\n'
+        sitemap_xml += f'  <url><loc>{page["loc"]}</loc><lastmod>{page["lastmod"]}</lastmod><priority>{page["priority"]}</priority></url>\n'
     sitemap_xml += '</urlset>'
-
     return Response(sitemap_xml, mimetype='application/xml')
 
 if __name__ == '__main__':
