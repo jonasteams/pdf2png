@@ -84,7 +84,7 @@ def convert():
         return "Unsupported file type", 400
 
 # Terms & Privacy
-@app.route('/terms')
+@app.route('/terms.html')
 def terms():
     return render_template('terms.html')
 
