@@ -1,105 +1,117 @@
+from flask import Flask, request, render_template, send_file
 from flask_cors import CORS
-from flask import Flask, request, send_file, Response, render_template
 from werkzeug.utils import secure_filename
-import os
-from datetime import datetime
-from zipfile import ZipFile
-from io import BytesIO
-from pdf2image import convert_from_path
 from PIL import Image
+import fitz  # PyMuPDF
+import os
+from io import BytesIO
+from zipfile import ZipFile
+from datetime import datetime
 
 app = Flask(__name__)
 CORS(app)
 
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['OUTPUT_FOLDER'] = 'output'
+# Dossiers
+app.config["UPLOAD_FOLDER"] = "uploads"
+app.config["OUTPUT_FOLDER"] = "outputs"
+os.makedirs(app.config["UPLOAD_FOLDER"], exist_ok=True)
+os.makedirs(app.config["OUTPUT_FOLDER"], exist_ok=True)
 
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+@app.route("/", methods=["GET"])
+def index():
+    tab = request.args.get("tab", "pdf2png")
+    return render_template("index.html", active_tab=tab, message=None, download_link=None)
 
-# Home route
-@app.route('/')
-def home():
-    return render_template('index.html')
-
-# Conversion route compatible frontend
-@app.route('/convert', methods=['POST'])
+@app.route("/convert", methods=["POST"])
 def convert():
-    files = request.files.getlist('file')  # frontend sends key="file"
-    if not files:
-        return "No file provided", 400
+    tab = request.form.get("tab")
 
-    first_file = files[0]
-    filename = secure_filename(first_file.filename)
-    ext = os.path.splitext(filename)[1].lower()
+    # === PDF -> PNG ===
+    if tab == "pdf2png":
+        file = request.files.get("file")
+        if not file or file.filename == "":
+            return render_template("index.html", message="No file provided", active_tab="pdf2png")
 
-    if ext == '.pdf':  # PDF → PNG
-        pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        first_file.save(pdf_path)
-        images = convert_from_path(pdf_path)
+        filename = secure_filename(file.filename)
+        input_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(input_path)
 
+        try:
+            doc = fitz.open(input_path)
+            img_paths = []
+            for i, page in enumerate(doc):
+                pix = page.get_pixmap()
+                out_file = os.path.join(app.config["OUTPUT_FOLDER"], f"page_{i+1}.png")
+                pix.save(out_file)
+                img_paths.append(out_file)
+            doc.close()
+        except Exception as e:
+            return render_template("index.html", message=f"Conversion error: {e}", active_tab="pdf2png")
+
+        # Créer un ZIP à télécharger
         zip_buffer = BytesIO()
-        temp_files = []
-
-        with ZipFile(zip_buffer, 'w') as zipf:
-            for i, img in enumerate(images, start=1):
-                img_filename = f"{os.path.splitext(filename)[0]}_{i}.png"
-                img_path = os.path.join(app.config['OUTPUT_FOLDER'], img_filename)
-                img.save(img_path, 'PNG')
-                temp_files.append(img_path)
-                zipf.write(img_path, arcname=img_filename)
-
+        with ZipFile(zip_buffer, "w") as zf:
+            for p in img_paths:
+                zf.write(p, os.path.basename(p))
         zip_buffer.seek(0)
 
-        # Delete temp files
-        os.remove(pdf_path)
-        for f in temp_files:
-            os.remove(f)
+        return send_file(zip_buffer, as_attachment=True,
+                         download_name="converted.zip", mimetype="application/zip")
 
-        return send_file(zip_buffer, as_attachment=True, download_name=f"{os.path.splitext(filename)[0]}.zip", mimetype='application/zip')
+    # === PNG -> PDF ===
+    elif tab == "png2pdf":
+        files = request.files.getlist("files")
+        if not files or files[0].filename == "":
+            return render_template("index.html", message="No file provided", active_tab="png2pdf")
 
-    elif ext in ['.png', '.jpg', '.jpeg']:  # PNG → PDF
-        images = []
-        temp_files = []
+        output_pdf = os.path.join(app.config["OUTPUT_FOLDER"], "output.pdf")
 
-        for file in files:
-            filename = secure_filename(file.filename)
-            path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(path)
-            temp_files.append(path)
-            img = Image.open(path).convert('RGB')
-            images.append(img)
+        try:
+            images = [Image.open(f).convert("RGB") for f in files]
+            images[0].save(output_pdf, save_all=True, append_images=images[1:])
+        except Exception as e:
+            return render_template("index.html", message=f"Conversion error: {e}", active_tab="png2pdf")
 
-        pdf_filename = f"merged_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
-        pdf_path = os.path.join(app.config['OUTPUT_FOLDER'], pdf_filename)
-        images[0].save(pdf_path, save_all=True, append_images=images[1:])
+        return send_file(output_pdf, as_attachment=True, download_name="converted.pdf")
 
-        # Delete temp files
-        for f in temp_files:
-            os.remove(f)
+    return render_template("index.html", message="Invalid request", active_tab="pdf2png")
 
-        return send_file(pdf_path, as_attachment=True, download_name=pdf_filename, mimetype='application/pdf')
-
-    else:
-        return "Unsupported file type", 400
-
-# Terms & Privacy
-@app.route('/terms.html')
-def terms():
-    return render_template('terms.html')
-
-# Sitemap
-@app.route('/sitemap.xml')
+# === SEO : sitemap.xml ===
+@app.route("/sitemap.xml", methods=["GET"])
 def sitemap():
-    pages = [
-        {'loc': request.url_root, 'lastmod': datetime.now().date(), 'priority': '1.0'},
-        {'loc': request.url_root + 'terms', 'lastmod': datetime.now().date(), 'priority': '0.8'},
-    ]
-    sitemap_xml = '<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
-    for page in pages:
-        sitemap_xml += f'  <url><loc>{page["loc"]}</loc><lastmod>{page["lastmod"]}</lastmod><priority>{page["priority"]}</priority></url>\n'
-    sitemap_xml += '</urlset>'
-    return Response(sitemap_xml, mimetype='application/xml')
+    base_url = request.url_root.strip("/")
+    lastmod = datetime.now().date().isoformat()
 
-if __name__ == '__main__':
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url>
+    <loc>{base_url}/</loc>
+    <lastmod>{lastmod}</lastmod>
+    <priority>1.0</priority>
+  </url>
+  <url>
+    <loc>{base_url}/?tab=pdf2png</loc>
+    <lastmod>{lastmod}</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>{base_url}/?tab=png2pdf</loc>
+    <lastmod>{lastmod}</lastmod>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>{base_url}/terms.html</loc>
+    <lastmod>{lastmod}</lastmod>
+    <priority>0.5</priority>
+  </url>
+</urlset>
+"""
+    return app.response_class(xml, mimetype="application/xml")
+
+# === Terms & Privacy ===
+@app.route("/terms.html", methods=["GET"])
+def terms():
+    return render_template("terms.html")
+
+if __name__ == "__main__":
     app.run(debug=True)

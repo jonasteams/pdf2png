@@ -1,0 +1,41 @@
+2025-10-03 02:47:37,386 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-03 02:47:37,387 INFO [33mPress CTRL+C to quit[0m
+2025-10-03 02:47:37,412 INFO  * Restarting with stat
+2025-10-03 02:47:38,079 WARNING  * Debugger is active!
+2025-10-03 02:47:38,098 INFO  * Debugger PIN: 107-314-190
+2025-10-03 02:53:05,068 INFO 127.0.0.1 - - [03/Oct/2025 02:53:05] "GET / HTTP/1.1" 200 -
+2025-10-03 02:53:05,512 INFO 127.0.0.1 - - [03/Oct/2025 02:53:05] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-03 02:53:05,890 INFO 127.0.0.1 - - [03/Oct/2025 02:53:05] "GET /static/favicon.png HTTP/1.1" 200 -
+2025-10-03 02:53:18,458 INFO Saved PDF to C:\Users\alaa allen\pdf2png\outputs\pdf2png_20251003025318_c4a68e\converted-12.pdf
+2025-10-03 02:53:24,829 INFO Created zip: C:\Users\alaa allen\pdf2png\outputs\20251003025318_c4a68e_images.zip
+2025-10-03 02:53:24,832 INFO 127.0.0.1 - - [03/Oct/2025 02:53:24] "POST /convert HTTP/1.1" 200 -
+2025-10-03 02:53:24,929 INFO 127.0.0.1 - - [03/Oct/2025 02:53:24] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-03 02:53:28,255 INFO 127.0.0.1 - - [03/Oct/2025 02:53:28] "GET /download/20251003025318_c4a68e_images.zip HTTP/1.1" 200 -
+2025-10-03 02:54:11,697 INFO 127.0.0.1 - - [03/Oct/2025 02:54:11] "GET /?tab=png2pdf HTTP/1.1" 200 -
+2025-10-03 02:54:11,797 INFO 127.0.0.1 - - [03/Oct/2025 02:54:11] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-03 02:54:21,003 INFO 127.0.0.1 - - [03/Oct/2025 02:54:21] "POST /convert HTTP/1.1" 200 -
+2025-10-03 02:54:21,103 INFO 127.0.0.1 - - [03/Oct/2025 02:54:21] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-03 02:54:24,057 INFO 127.0.0.1 - - [03/Oct/2025 02:54:24] "GET /download/20251003025418_0a6b47_pdf.zip HTTP/1.1" 200 -
+2025-10-03 02:54:42,635 INFO 127.0.0.1 - - [03/Oct/2025 02:54:42] "GET /?tab=pdf2png HTTP/1.1" 200 -
+2025-10-03 02:54:42,777 INFO 127.0.0.1 - - [03/Oct/2025 02:54:42] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-05 16:54:46,481 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-05 16:54:46,507 INFO [33mPress CTRL+C to quit[0m
+2025-10-05 16:54:46,529 INFO  * Restarting with stat
+2025-10-05 16:54:47,138 WARNING  * Debugger is active!
+2025-10-05 16:54:47,204 INFO  * Debugger PIN: 107-314-190
+2025-10-05 16:58:39,901 INFO [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-10-05 16:58:39,901 INFO [33mPress CTRL+C to quit[0m
+2025-10-05 16:58:39,916 INFO  * Restarting with stat
+2025-10-05 16:58:40,461 WARNING  * Debugger is active!
+2025-10-05 16:58:40,467 INFO  * Debugger PIN: 922-518-254
+2025-10-05 16:59:13,611 INFO 127.0.0.1 - - [05/Oct/2025 16:59:13] "GET / HTTP/1.1" 200 -
+2025-10-05 16:59:15,018 INFO 127.0.0.1 - - [05/Oct/2025 16:59:15] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-05 16:59:15,498 INFO 127.0.0.1 - - [05/Oct/2025 16:59:15] "GET /static/favicon.png HTTP/1.1" 200 -
+2025-10-05 16:59:37,293 INFO Saved PDF to C:\Users\alaa allen\pdf2png\outputs\pdf2png_20251005165937_b3b84b\converted-13.pdf
+2025-10-05 16:59:45,154 INFO Created zip: C:\Users\alaa allen\pdf2png\outputs\20251005165937_b3b84b_images.zip
+2025-10-05 16:59:45,159 INFO 127.0.0.1 - - [05/Oct/2025 16:59:45] "POST /convert HTTP/1.1" 200 -
+2025-10-05 16:59:45,280 INFO 127.0.0.1 - - [05/Oct/2025 16:59:45] "GET /static/logo.png HTTP/1.1" 200 -
+2025-10-05 16:59:52,460 INFO 127.0.0.1 - - [05/Oct/2025 16:59:52] "GET /download/20251005165937_b3b84b_images.zip HTTP/1.1" 200 -

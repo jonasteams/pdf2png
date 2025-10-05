@@ -43,11 +43,11 @@
       <div class="flex-1 flex justify-center">
         <div class="flex space-x-12 text-white text-lg font-semibold items-center">
           <a href="/?tab=pdf2png"
-             class="{{ 'text-white' if tab=='pdf2png' else 'text-white/90 hover:text-white' }}">
+             class="{{ 'text-white' if active_tab=='pdf2png' else 'text-white/90 hover:text-white' }}">
              PDF to PNG
           </a>
           <a href="/?tab=png2pdf"
-             class="{{ 'text-white' if tab=='png2pdf' else 'text-white/90 hover:text-white' }}">
+             class="{{ 'text-white' if active_tab=='png2pdf' else 'text-white/90 hover:text-white' }}">
              PNG to PDF
           </a>
         </div>
@@ -63,14 +63,14 @@
     <div class="w-full max-w-lg px-4">
       <div class="bg-white rounded-2xl shadow-lg p-8 text-center">
         <h1 class="text-2xl font-bold text-gray-800 mb-6">
-          {% if tab == 'pdf2png' %}Convert PDF to PNG{% else %}Convert PNG(s) to PDF{% endif %}
+          {% if active_tab == 'pdf2png' %}Convert PDF to PNG{% else %}Convert PNG(s) to PDF{% endif %}
         </h1>
 
         {% if message %}
           <div class="mb-4 text-sm text-red-600">{{ message }}</div>
         {% endif %}
 
-        {% if tab == 'pdf2png' %}
+        {% if active_tab == 'pdf2png' %}
           <form action="/convert" method="post" enctype="multipart/form-data" class="space-y-4">
             <input type="hidden" name="tab" value="pdf2png">
 
